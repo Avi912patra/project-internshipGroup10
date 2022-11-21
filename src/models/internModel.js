@@ -19,7 +19,6 @@ const internSchema = new mongoose.Schema(
         },
         collegeId: {
             type: objectId,
-            required:true,
             ref: "CollegeModel"
 
         },
