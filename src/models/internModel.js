@@ -1,4 +1,5 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
+const collegeModel = require("./collegeModel");
 const objectId = mongoose.Schema.Types.ObjectId
 
 const internSchema = new mongoose.Schema(
@@ -6,22 +7,20 @@ const internSchema = new mongoose.Schema(
         name: {
             type: String,
             required: true,
-            trim: true
         },
         email: {
             type: String,
             required: true,
-            unique: true,
         },
         mobile: {
             type: String,
             required: true,
         },
-        collegeId: {
-            type: objectId,
-            ref: "CollegeModel"
 
+        collegeId: {
+            type: objectId
         },
+
         isDeleted: {
             type: Boolean,
             default: false

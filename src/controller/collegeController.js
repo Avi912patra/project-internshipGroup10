@@ -23,5 +23,18 @@ const createCollege=async function(req,res){
 
 module.exports.createCollege=createCollege
 
+//get college ===================
 
+//find college---
+//got collgege details
+
+//second find quesris for interns
+//get collegeid fronm abobe data
+//find all the inters
+
+//res { data:"name":college.abrivation,
+    // "fullName":coolege.fullName ,
+    // "logoLink":link,
+// interns:Interns jo hune find kare the
+// }
 
