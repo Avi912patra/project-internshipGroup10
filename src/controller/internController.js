@@ -1,67 +1,43 @@
-const internModel = require("../models/internModel");
-const collegeModel = require("../models/collegeModel");
-const validation=require("../validation/validation")
+const internModel = require('../models/internModel')
+const collegeModel = require('../models/collegeModel')
 
-const createIntern = async (req, res) => {
+let regexValidation = /^[a-zA-Z]+([\s][a-zA-Z]+)*$/;
+let regexValidEmail = /[a-zA-Z0-9_\-\.]+[@][a-z]+[\.][a-z]{2,3}/;
+let regexValidNumber = /^([+]\d{2})?\d{10}$/;
+
+// =====================================createintern================================================
+const createIntern = async  (req, res)=> {
     try {
-       
-    const data = req.body;
-    let { name, email, mobile, collegeName } = data;
-    
-    if(Object.keys(data)==0){return res.status(400).send({Status:false,msg:"Body is empty"})}
+        let data = req.body
+        if (Object.keys(data).length == 0) return res.status(400).send({ status: false, msg: "plzz give some data" })
 
-    if (!validation.isValidname(name)){
-      return res.status(400).send({ status: false, massege: " Name is required" })}
+        const { name, email, mobile, collegeName } = data
 
-     if (!validation.isValidMobileNo(mobile)){
-       return res.status(400).send({ status: false, message: "Enter valid mobile no" })}
+        if (!name) return res.status(400).send({ status: false, msg: "Enter your name" })
+        if (!email) return res.status(400).send({ status: false, msg: "Enter your email" })
+        if (!mobile) return res.status(400).send({ status: false, msg: "Enter mobile Number" })
+        if (!collegeName) return res.status(400).send({ status: false, msg: "Enter collegeName" })
 
-       isMobileAlreadyExisted=await internModel.findOne({mobile})
-       if(isMobileAlreadyExisted){
-        return res.status(400).send({status:false,msg:"This mobile no is already used"})
+        if (!name.match(regexValidation)) return res.status(400).send({ status: false, msg: "please enetr a valid name" })
+        if (!email.match(regexValidEmail)) return res.status(400).send({ status: false, msg: "please enetr a valid email" })
+        if (!mobile.match(regexValidNumber)) return res.status(400).send({ status: false, msg: "please enetr a valid mobile" })
 
-       }
+        let findEmail = await internModel.findOne({ email: email, isDeleted: false })
+        if (findEmail) return res.status(403).send({ status: false, msg: "email id already exists" })
+        let findmobile = await internModel.findOne({ mobile: mobile, isDeleted: false })
+        if (findmobile) return res.status(403).send({ status: false, msg: "Mobile number already exsits" })
 
-       isEmailAlreadyExisted=await internModel.findOne({email})
-       if(isEmailAlreadyExisted){
-        return res.status(400).send({status:false,msg:"This email is already used"})
-       }
-
-       if(!validation.isvalidEmail(email)){
-        return res.status(404).send({status:false,msg:"Enter valid email"})
-       }
-
-       if(!validation.isvalidCollege(collegeName)){
-        return res.status.send({status:false,msg:"Enter valid college Name"})
-       }
-
-       const findcollege=await collegeModel.findOne({name:collegeName})
-       if(!findcollege){
-        return res.status(400).send({status:false,msg:"such college not exists"})
-       }
-
-       const collegeId=findcollege._id
-       const internData={
-        name:name,
-        mobile:mobile,
-        email:email,
-        collegeId:collegeId,
-       }
-       const findIntern=await internModel.findOne(internData)
-       if(findIntern){
-        return res.status(400).send({status:false,msg:"student already exists with this data"})
-       }
-
-       const createIntern=await internModel.create(internData)
-       if(createIntern){
-        return res.status(201).send({status:true,msg:"Data is created",data:createIntern})
-       }
-      }catch(error){
-        return res.status(500).send({status:false,msg:error.massege})
-      }
-}
-
+        let CheckCollege = await collegeModel.findOne({ name: collegeName, isDeleted: false })
+        if (!CheckCollege) return res.status(404).send({ status: false, message: ` No such college Name Not Found!` });
+        let clgId = CheckCollege._id
+         req.body.collegeId = clgId
      
+        let intern = await internModel.create(data)
+        res.status(201).send({ status: true,message:"intern created successfully", Data: intern })
 
+    } catch (error) {
+        res.status(500).send({ status: false, msg: error.message })
 
-module.exports.createIntern = createIntern
+    }
+}
+module.exports = { createIntern }

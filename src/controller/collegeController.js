@@ -1,85 +1,77 @@
-const collegeModel=require("../models/collegeModel")
-const internModel=require("../models/internModel")
-const validation=require("../validation/validation")
+const collegeModel = require("../models/collegeModel");
+const internModel = require("../models/internModel");
 
-
-const createCollege=async function(req,res){
-    try{
-        let { name, fullName, logoLink } = req.body
-        let body = req.body
-
-        let bodydata = Object.keys(body)
-        if (bodydata.length == 0) { return res.status(400).send({ status: false, msg: "body is empty" }) }
-
-    
-        if (!validation.isValidName(name)) { return res.status(404).send({ status: false, msg: "Enter valid name " }) }
-        if (!fullName) { return res.status(404).send({ status: false, msg: "fullname is mandatary" }) }
-        if (!logoLink) { return res.status(400).send({ status: false, msg: "logoLink is mandatary" }) }
-        const validateLogoLink=url.isUri(logoLink)
-        if(!validateLogoLink){
-            return res.status(404).send({status:false,msg:"Enter valid logo link"})
-        }
-        const Resgisteredname=await collegeModel.findOne({name})
-        if(Resgisteredname){
-            return res.status(400).send({status:false,msg:"Name is already registered"})
-        }
-
-        let collegeCreated = await collegeModel.create(req.body )
-        res.status(201).send({ data: collegeCreated })
-    }
-    catch (err) {
-        res.status(500).send({ status: false, msg: err.message })
-    }
-}
-
-const collegeDetails=async function(req,res){
-try{
-    let data=req.query
-    const{collegeName}=data
-    if(Object.keys(data)==0){
-        return res.status(400).send({status:false,msg:"Enter College Name"})
-    }
-    let findCollege=await collegeModel.findOne({name:collegeName,isDeleted:false}).select({_id:1,name:1,logoLink:1,fullName:1})
-    if(!findCollege){
-        res.status(400).send({status:false,msg:"College name is already exists"})
-    }
-    let collegeId=findCollege._id
-
-    let internData= await internModel.find({collegeId:collegeId,isDeleted:false}).select({name:1,email:1,mobile:1})
-    if(!internData){
-        res.status(400).send({status:false,msg:"NoOne apply for this college"})
-    }
-    let details={
-        name:findCollege.name,
-        fullName:findCollege.fullName,
-        logoLink:findCollege.logoLink,
-        interns:internData
-    }
-        return res.status(200).send({status:true,data:details})}
-    catch(error){
-        return res.status(200).send({status:false,error:error.message})
-
-    }
-    }
+let regexValidname = /^[a-zA-Z]+([\s][a-zA-Z]+)*$/;
+let regexvalidfullName = /^[a-zA-Z]+([\s][a-zA-Z,]+)*$/;
+let regexlogoLink = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/;
 
 
 
-module.exports.createCollege=createCollege
-module.exports.collegeDetails=collegeDetails
+
+// ==============================================createcollege==================================================
 
 
-//get college ===================
 
-//find college---
-//got collgege details
+const createcollege = async function (req, res) {
+  try {
+    let data = req.body;
+    if (Object.keys(data).length == 0)
+      return res.status(400).send({ status: false, msg: "plzz give some data" });
 
-//second find quesris for interns
-//get collegeid fronm abobe data
-//find all the inters
+    const { name, fullName, logoLink } = data;
 
-//res { data:"name":college.abrivation,
-    // "fullName":coolege.fullName ,
-    // "logoLink":link,
-// interns:Interns jo hune find kare the
-// }
+    if (!name)
+      return res.status(400).send({ status: false, msg: "Enter collage name" });
+    if (!fullName)
+      return res.status(400).send({ status: false, msg: "Enter collage FullName " });
+    if (!logoLink)
+      return res.status(400).send({ status: false, msg: "Enter collage logoLink" });
+      if (!name.match(regexValidname))
+      return res.status(400).send({ status: false, msg: "please enetr a valid name" });
 
+    if (!fullName.match(regexvalidfullName))
+      return res.status(400).send({ status: false, msg: "please enetr a valid fullName" });
+
+    if (!logoLink.match(regexlogoLink))
+      return res.status(400).send({ status: false, msg: "please enetr a valid logoLink" });
+
+    let findname = await collegeModel.findOne({ name: name });
+    if (findname)
+      return res.status(403).send({ status: false, msg: "name already exsits" });
+
+    let collage = await collegeModel.create(data);
+    res.status(201).send({ status: true, Data: collage });
+  } catch (error) {
+    res.status(500).send({ status: false, msg: error.message });
+  }
+};
+
+
+// ==============================================Getcollegedetail==================================================
+
+
+
+const collegeDetails = async (req, res) => {
+  try {
+    let data = req.query.collegeName;
+    if (!data)
+      return res.status(400).send({ status: false, msg: "Enter collegename" });
+
+    let collagedata = await collegeModel.findOne({ name: data, isDeleted: false });
+    if (!collagedata)
+      return res.status(404).send({ status: false, msg: "College is Not found!" });
+
+    let collageid = collagedata._id.toString();
+    let interns = await internModel.find({ collegeId: collageid, isDeleted: false, }).select({ _id: 0, isDeleted: 0 ,createdAt:0,updatedAt:0,__v:0});
+    if (!interns) return res.status(404).send({ status: false, msg: "intern is Not found!" });
+
+    let final = await collegeModel.findOne({ name: data, isDeleted: false }).select({ _id: 0, isDeleted: 0,createdAt:0,updatedAt:0,__v:0 });
+
+
+    res.status(200).send({ status: true, Data: final ,Interns : interns});
+  } catch (error) {
+    res.status(500).send({ status: false, msg: error.message });
+  }
+};
+
+module.exports = { createcollege, collegeDetails };
