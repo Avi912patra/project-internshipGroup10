@@ -11,14 +11,18 @@ const internSchema = new mongoose.Schema(
         email: {
             type: String,
             required: true,
+            unique:true,
         },
         mobile: {
             type: String,
             required: true,
+            unique:true,
         },
 
         collegeId: {
-            type: objectId
+            type: objectId,
+            ref:"collegeModel",
+            required:true,
         },
 
         isDeleted: {

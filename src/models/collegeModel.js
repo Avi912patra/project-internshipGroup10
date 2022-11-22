@@ -4,12 +4,14 @@ const collegeSchema = new mongoose.Schema({
    name: {
       type: String,
       required: true,
+      trim:true,
       unique:true,
       lowercase:true
    },
    fullName: {
       type: String,
       required: true,
+      trim:true,
    },
    logoLink: {
       type: String,
@@ -20,7 +22,7 @@ const collegeSchema = new mongoose.Schema({
       type:Boolean,
       default: false
    }
-}, { timestemps: true }
+}, { timestamps: true }
 )
 
 module.exports = mongoose.model('CollegeModel', collegeSchema)
